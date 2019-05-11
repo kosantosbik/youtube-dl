@@ -12,7 +12,49 @@ from ..utils import (
 )
 
 
-class KanaldBaseIE(InfoExtractor):
+class KanalDIE(InfoExtractor):
+    _VALID_URL = r'''(?x)
+                    https?://(?:www\.)?kanald\.com\.tr/
+                    (?:
+                        (?:[a-zA-Z0-9-]+)/
+                        (?:
+                            (?:[0-9]+)-bolum|
+                            (?:[0-9]+)-bolum-izle|
+                            bolumler|
+                            bolum
+                        )|
+                        embed
+                    )/
+                    (?P<id>[a-zA-Z0-9-]+)
+                '''
+
+    _TESTS = [{
+        'url': 'https://www.kanald.com.tr/kuzeyguney/1-bolum/10115',
+        'md5': '8a32b6e894d45d618360b8b01173de9a',
+        'info_dict': {
+            'id': '10115',
+            'title': '1.Bölüm',
+            'description': 'md5:64edbdd153b7eefdf92c31bf5a6e5c1b',
+            'upload_date': '20110907',
+            'timestamp': 1315426815,
+            'ext': 'm3u8',
+        }
+    }, {
+        'url': 'https://www.kanald.com.tr/embed/5465f0d2cf45af1064b73077',
+        'only_matching': True
+    }, {
+        'url': 'https://www.kanald.com.tr/kuzeyguney/79-bolum-izle/19270',
+        'only_matching': True
+    }, {
+        'url': 'https://www.kanald.com.tr/sevdanin-bahcesi/bolumler/sevdanin-bahcesi-2-bolum',
+        'only_matching': True
+    }, {
+        'url': 'https://www.kanald.com.tr/yarim-elma/bolum/yarim-elma-36-bolum',
+        'only_matching': True
+    }, {
+        'url': 'https://www.kanald.com.tr/ask-ve-gunah/bolumler/ask-ve-gunah-120-bolum-final',
+        'only_matching': True
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -42,62 +84,7 @@ class KanaldBaseIE(InfoExtractor):
         return merge_dicts(ld_info, info)
 
 
-class KanaldIE(KanaldBaseIE):
-    _VALID_URL = r'''(?x)
-                    https?://(?:www\.)?kanald\.com\.tr/(?:[a-zA-Z0-9-]+)/
-                    (?:
-                        (?:[0-9]+)-bolum|
-                        (?:[0-9]+)-bolum-izle|
-                        bolumler|
-                        bolum
-                    )/
-                    (?P<id>[a-zA-Z0-9-]+)
-                '''
-
-    _TESTS = [{
-        'url': 'https://www.kanald.com.tr/kuzeyguney/1-bolum/10115',
-        'md5': '8a32b6e894d45d618360b8b01173de9a',
-        'info_dict': {
-            'id': '10115',
-            'title': '1.Bölüm',
-            'description': 'md5:64edbdd153b7eefdf92c31bf5a6e5c1b',
-            'upload_date': '20110907',
-            'timestamp': 1315426815,
-            'ext': 'm3u8',
-        }
-    }, {
-        'url': 'https://www.kanald.com.tr/kuzeyguney/79-bolum-izle/19270',
-        'only_matching': True
-    }, {
-        'url': 'https://www.kanald.com.tr/sevdanin-bahcesi/bolumler/sevdanin-bahcesi-2-bolum',
-        'only_matching': True
-    }, {
-        'url': 'https://www.kanald.com.tr/yarim-elma/bolum/yarim-elma-36-bolum',
-        'only_matching': True
-    }, {
-        'url': 'https://www.kanald.com.tr/ask-ve-gunah/bolumler/ask-ve-gunah-120-bolum-final',
-        'only_matching': True
-    }]
-
-
-class KanaldEmbedIE(KanaldBaseIE):
-    _VALID_URL = r'https?://(?:www\.)?kanald\.com\.tr/embed/(?P<id>[a-zA-Z0-9]+)'
-
-    _TESTS = [{
-        'url': 'https://www.kanald.com.tr/embed/5465f0d2cf45af1064b73077',
-        'md5': '8a32b6e894d45d618360b8b01173de9a',
-        'info_dict': {
-            'id': '5465f0d2cf45af1064b73077',
-            'title': '1.Bölüm',
-            'description': 'md5:64edbdd153b7eefdf92c31bf5a6e5c1b',
-            'upload_date': '20110907',
-            'timestamp': 1315426815,
-            'ext': 'm3u8',
-        }
-    }]
-
-
-class KanaldSerieIE(InfoExtractor):
+class KanalDSeriesIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?kanald\.com\.tr/(?P<id>[a-zA-Z0-9-]+)/(?:bolum|bolumler)'
 
     _TESTS = [{
@@ -133,7 +120,7 @@ class KanaldSerieIE(InfoExtractor):
                     continue
                 yield self.url_result(
                     'https://www.kanald.com.tr/%s' % episode_url,
-                    ie=KanaldIE.ie_key())
+                    ie=KanalDIE.ie_key())
 
             page += 1
 

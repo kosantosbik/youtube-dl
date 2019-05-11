@@ -525,9 +525,8 @@ from .jpopsukitv import JpopsukiIE
 from .kakao import KakaoIE
 from .kaltura import KalturaIE
 from .kanald import (
-    KanaldIE,
-    KanaldEmbedIE,
-    KanaldSerieIE,
+    KanalDIE,
+    KanalDSeriesIE,
 )
 from .kanalplay import KanalPlayIE
 from .kankan import KankanIE
@@ -1529,4 +1528,3 @@ from .zattoo import (
 from .zdf import ZDFIE, ZDFChannelIE
 from .zingmp3 import ZingMp3IE
 from .zype import ZypeIE
-from .kanald import KanaldIE, KanaldSerieIE
