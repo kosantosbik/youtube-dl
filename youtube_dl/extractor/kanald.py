@@ -2,11 +2,9 @@
 from __future__ import unicode_literals
 
 import re
-import json
 
 from .common import InfoExtractor
 from ..utils import (
-    ExtractorError,
     merge_dicts,
     try_get,
 )
