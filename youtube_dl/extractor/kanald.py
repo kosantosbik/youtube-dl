@@ -10,41 +10,18 @@ from ..utils import (
 )
 
 
-class KanaldBaseIE(InfoExtractor):
-
-    def _real_extract(self, url):
-        video_id = self._match_id(url)
-
-        webpage = self._download_webpage(url, video_id)
-
-        info = {
-            'id': video_id,
-        }
-
-        """FIXME: https://www.kanald.com.tr/kuzeyguney/80-bolum-izle/19364 -> Invalid control character at: line 5 column 146 (char 255)"""
-
-        search_json_ld = self._search_regex(
-            r'(?is)<script[^>]+type=(["\'])application/ld\+json\1[^>]*>(?:\s+)?(?P<json_ld>{[^<]+VideoObject[^<]+})(?:\s+)?</script>', webpage, 'JSON-LD', group='json_ld')
-        json_ld = self._parse_json(search_json_ld, video_id)
-
-        if not re.match(r'dogannet\.tv', json_ld['contentUrl']):
-            json_ld.update({
-                'contentUrl': 'https://soledge13.dogannet.tv/%s' % json_ld['contentUrl']
-            })
-
-        ld_info = self._json_ld(json_ld, video_id)
-
-        return merge_dicts(ld_info, info)
-
-
-class KanaldIE(KanaldBaseIE):
+class KanalDIE(InfoExtractor):
     _VALID_URL = r'''(?x)
-                    https?://(?:www\.)?kanald\.com\.tr/(?:[a-zA-Z0-9-]+)/
+                    https?://(?:www\.)?kanald\.com\.tr/
                     (?:
-                        (?:[0-9]+)-bolum|
-                        (?:[0-9]+)-bolum-izle|
-                        bolumler|
-                        bolum
+                        (?:[a-zA-Z0-9-]+)/
+                        (?:
+                            (?:[0-9]+)-bolum|
+                            (?:[0-9]+)-bolum-izle|
+                            bolumler|
+                            bolum
+                        )|
+                        embed
                     )/
                     (?P<id>[a-zA-Z0-9-]+)
                 '''
@@ -61,6 +38,9 @@ class KanaldIE(KanaldBaseIE):
             'ext': 'm3u8',
         }
     }, {
+        'url': 'https://www.kanald.com.tr/embed/5465f0d2cf45af1064b73077',
+        'only_matching': True
+    }, {
         'url': 'https://www.kanald.com.tr/kuzeyguney/79-bolum-izle/19270',
         'only_matching': True
     }, {
@@ -74,26 +54,36 @@ class KanaldIE(KanaldBaseIE):
         'only_matching': True
     }]
 
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
 
-class KanaldEmbedIE(KanaldBaseIE):
-    _VALID_URL = r'https?://(?:www\.)?kanald\.com\.tr/embed/(?P<id>[a-zA-Z0-9]+)'
+        webpage = self._download_webpage(url, video_id)
 
-    _TESTS = [{
-        'url': 'https://www.kanald.com.tr/embed/5465f0d2cf45af1064b73077',
-        'md5': '8a32b6e894d45d618360b8b01173de9a',
-        'info_dict': {
-            'id': '5465f0d2cf45af1064b73077',
-            'title': '1.Bölüm',
-            'description': 'md5:64edbdd153b7eefdf92c31bf5a6e5c1b',
-            'upload_date': '20110907',
-            'timestamp': 1315426815,
-            'ext': 'm3u8',
+        info = {
+            'id': video_id,
         }
-    }]
+
+        search_json_ld = self._search_regex(
+            r'(?is)<script[^>]+type=(["\'])application/ld\+json\1[^>]*>(?:\s+)?(?P<json_ld>{[^<]+VideoObject[^<]+})(?:\s+)?</script>', webpage, 'JSON-LD', group='json_ld')
+
+        # https://stackoverflow.com/questions/22394235/invalid-control-character-with-python-json-loads
+        try:
+            json_ld = json.loads(search_json_ld, strict=False)
+        except ValueError as ve:
+            raise ExtractorError('%s: Failed to parse JSON ' % video_id, cause=ve)
+
+        if not re.match(r'dogannet\.tv', json_ld['contentUrl']):
+            json_ld.update({
+                'contentUrl': 'https://soledge13.dogannet.tv/%s' % json_ld['contentUrl']
+            })
+
+        ld_info = self._json_ld(json_ld, video_id)
+
+        return merge_dicts(ld_info, info)
 
 
-class KanaldSerieIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?kanald\.com\.tr/(?P<id>[a-zA-Z0-9-]+)/(?:bolum|bolumler)$'
+class KanalDSeriesIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:www\.)?kanald\.com\.tr/(?P<id>[a-zA-Z0-9-]+)/(?:bolum|bolumler)'
 
     _TESTS = [{
         'url': 'https://www.kanald.com.tr/kuzeyguney/bolum',
@@ -128,7 +118,7 @@ class KanaldSerieIE(InfoExtractor):
                     continue
                 yield self.url_result(
                     'https://www.kanald.com.tr/%s' % episode_url,
-                    ie=KanaldIE.ie_key())
+                    ie=KanalDIE.ie_key())
 
             page += 1
 
